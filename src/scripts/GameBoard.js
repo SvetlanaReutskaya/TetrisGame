@@ -1,6 +1,8 @@
 export class GameBoard{
     
     constructor(figureFabric, canvas, context) {
+        this.delay = ms => new Promise(res => setTimeout(res, ms));
+
         this.canvas = canvas;
         this.context2d = context;
 
@@ -13,7 +15,9 @@ export class GameBoard{
         this.currentFigurePositionX = null;
         this.currentFigurePositionY = null;
         this.field = Array(20).fill().map(()=>Array(10).fill(0))
+
         this.gameOver = false;
+        this.score = 0;
     }
 
     RotateFigure() {
@@ -45,8 +49,10 @@ export class GameBoard{
     }
 
     CheckIsFall(){
+        let figureNextX = this.currentFigurePositionX + 1; 
+        let figureNextY = this.currentFigurePositionY; 
+
         let figureEndRow = this.currentFigurePositionX;
-        
         for(let i = this.currentFigure.length - 1; i >= 0; i--){
             let isempty = true;
             for(let j = 0; j<this.currentFigure[0].length; j++){
@@ -58,16 +64,17 @@ export class GameBoard{
                 break;
             }
         }
-
-        let rowId = figureEndRow + 1;
-
         if(figureEndRow == this.field.length - 1)
             return true;
 
-        for(let colId = this.currentFigurePositionY; colId < this.currentFigurePositionY + this.currentFigure[0].length; colId++)
-        {
-            if(this.field[rowId][colId] == 1)
-            return true;
+        for(let i = figureNextX; i < figureNextX + this.currentFigure.length; i++){
+            for(let j = figureNextY; j< figureNextY + this.currentFigure[0].length; j++){
+                if(i < this.field.length){
+                    if(this.field[i][j] == 1 && this.currentFigure[i-figureNextX][j-figureNextY] == 1){
+                        return true;
+                    }
+                }
+            }
         }
 
         return false;
@@ -113,14 +120,41 @@ export class GameBoard{
         }
     }
 
-    CheckUserMove(cellRow, cellCol) {
-        return true;
+    async CountScores() {
+        let dubbles = 0;
+        for (let row = 0; row < this.field.length; row++) {
+            let isFull = true;
+            for (let col = 0; col < this.field[0].length; col++) {
+                if (this.field[row][col] == 0) {
+                    isFull = false;
+                    break;
+                }
+            }
+            if(isFull){
+                dubbles+=1;
+                this.score += 10 * dubbles;
+                this.CollapseRow(row);
+                this.DrawField();
+
+                await this.delay(500);
+            }
+        }
+    }
+
+    CollapseRow(row){
+        for (let i = row; i > 0; i--) {
+            for (let j = 0; j < this.field[0].length; j++) {
+                this.field[i][j] = this.field[i-1][j]
+            }
+        }
+
+        for (let j = 0; j < this.field[0].length; j++) {
+            this.field[0][j] = 0;
+        }
     }
 
     async GameProcess(){
-
-        const delay = ms => new Promise(res => setTimeout(res, ms));
-
+        
         this.CheckGameOver();
         while(!this.gameOver){ 
             this.currentFigure = this.figureQueue.pop();
@@ -128,7 +162,7 @@ export class GameBoard{
             this.currentFigurePositionY = 4;
 
             do{
-                await delay(1000);
+                await this.delay(500);
 
                 this.currentFigurePositionX += 1;
                 this.DrawField();
@@ -137,14 +171,30 @@ export class GameBoard{
 
             this.MakeFigureAsField();
             this.DrawField();
+
+            await this.CountScores();
+
             this.figureQueue.push(this.figureFabric.GetNextFigure());
         }
     }
 
     CheckGameOver() {
+        for (let j = 0; j < this.field[0].length; j++) {
+            if(this.field[0][j] == 1)
+                this.gameOver = true;
+        }
         if(this.field[0][4] == 1){
-
             this.gameOver = true;
+
+            context.fillStyle = 'black';
+            context.globalAlpha = 0.5;
+            context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
+            context.globalAlpha = 1;
+            context.fillStyle = 'white';
+            context.font = '50px monospace';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText('GAME OVER! YOURE SCORE: ' + this.score, canvas.width / 2, canvas.height / 2);
         }
     }
 }

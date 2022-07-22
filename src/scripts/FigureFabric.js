@@ -42,7 +42,7 @@ export class FigureFabric{
     GetNextFigure(){
       const sequence = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
   
-      let figureName = sequence[this.getRandomInt(0, sequence.length)];
+      let figureName = sequence[this.getRandomInt(0, sequence.length-1)];
   
       return this.figureTypes[figureName];
     }
