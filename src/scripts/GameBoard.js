@@ -1,8 +1,14 @@
 export class GameBoard{
     
-    constructor(figureFabric) {
+    constructor(figureFabric, canvas, context) {
+        this.canvas = canvas;
+        this.context2d = context;
+
         this.figureFabric = figureFabric;
-        this.figureQueue = Array(5).fill(this.figureFabric.GetNextFigure());
+        this.figureQueue = Array(5);
+        for(let i=0; i<5; i++)
+            this.figureQueue.push(this.figureFabric.GetNextFigure());
+
         this.currentFigure = null;
         this.currentFigurePositionX = null;
         this.currentFigurePositionY = null;
@@ -12,8 +18,8 @@ export class GameBoard{
 
     RotateFigure() {
         let N = this.currentFigure.length - 1;
-        let newFigure = matrix.map((row, i) =>
-          row.map((val, j) => matrix[N - j][i])
+        let newFigure = this.currentFigure.map((row, i) =>
+          row.map((val, j) => this.currentFigure[N - j][i])
         );
         this.currentFigure = newFigure;
     }
@@ -23,9 +29,9 @@ export class GameBoard{
 
         if(newY >= 0 && newY < this.field[0].length){
             let check = true;
-            for(let rowId = this.currentFigurePositionX; rowId < this.currentFigurePositionX + currentFigure.length; rowId++)
+            for(let rowId = this.currentFigurePositionX; rowId < this.currentFigurePositionX + this.currentFigure.length; rowId++)
             {
-                for(let colId = newY; colId < newY + currentFigure[0].length; colId++)
+                for(let colId = newY; colId < newY + this.currentFigure[0].length; colId++)
                 {
                     if(this.field[rowId][colId] == 1 && this.currentFigure[rowId-this.currentFigurePositionX][colId-newY] == 1){
                         check = false;
@@ -39,9 +45,26 @@ export class GameBoard{
     }
 
     CheckIsFall(){
-        let rowId = currentFigurePositionX + currentFigure.length + 1;
+        let figureEndRow = this.currentFigurePositionX;
+        
+        for(let i = this.currentFigure.length - 1; i >= 0; i--){
+            let isempty = true;
+            for(let j = 0; j<this.currentFigure[0].length; j++){
+                if(this.currentFigure[i][j] == 1)
+                    isempty = false;
+            }
+            if(!isempty){
+                figureEndRow = this.currentFigurePositionX + i;
+                break;
+            }
+        }
 
-        for(let colId = this.currentFigurePositionY; colId < this.currentFigurePositionY + currentFigure[0].length; colId++)
+        let rowId = figureEndRow + 1;
+
+        if(figureEndRow == this.field.length - 1)
+            return true;
+
+        for(let colId = this.currentFigurePositionY; colId < this.currentFigurePositionY + this.currentFigure[0].length; colId++)
         {
             if(this.field[rowId][colId] == 1)
             return true;
@@ -51,11 +74,12 @@ export class GameBoard{
     }
 
     MakeFigureAsField(){
-            for(let rowId = this.currentFigurePositionX; rowId < this.currentFigurePositionX + currentFigure.length; rowId++)
+            for(let rowId = this.currentFigurePositionX; rowId < this.currentFigurePositionX + this.currentFigure.length; rowId++)
             {
-                for(let colId = this.currentFigurePositionY; colId < this.currentFigurePositionY + currentFigure[0].length; colId++)
+                for(let colId = this.currentFigurePositionY; colId < this.currentFigurePositionY + this.currentFigure[0].length; colId++)
                 {
-                    this.field[rowId][colId] = this.currentFigure[rowId-this.currentFigurePositionX][colId-this.currentFigurePositionY];
+                    if(this.currentFigure[rowId-this.currentFigurePositionX][colId-this.currentFigurePositionY] == 1)
+                        this.field[rowId][colId] = this.currentFigure[rowId-this.currentFigurePositionX][colId-this.currentFigurePositionY];
                 }
             }
             this.currentFigure = null;
@@ -63,26 +87,51 @@ export class GameBoard{
             this.currentFigurePositionY = null;
     }
 
-    DrowField(){
+    DrawField(){
+        this.context2d.clearRect(0,0, this.canvas.width, this.canvas.height);
 
+        for (let row = 0; row < this.field.length; row++) {
+            for (let col = 0; col < this.field[0].length; col++) {
+                if (this.field[row][col] == 1) {
+                    this.context2d.fillStyle = 'blue';
+                    this.context2d.fillRect(col * 32, row * 32, 32-1, 32-1);
+                }
+            }
+        }
+
+        if(this.currentFigure){
+            for(let rowId = this.currentFigurePositionX; rowId < this.currentFigurePositionX + this.currentFigure.length; rowId++)
+            {
+                for(let colId = this.currentFigurePositionY; colId < this.currentFigurePositionY + this.currentFigure[0].length; colId++)
+                {
+                    if (this.currentFigure[rowId-this.currentFigurePositionX][colId-this.currentFigurePositionY] == 1) {
+                        this.context2d.fillStyle = 'yellow';
+                        this.context2d.fillRect(colId * 32, rowId * 32, 32-1, 32-1);
+                    }
+                }
+            }
+        }
     }
 
     CheckUserMove(cellRow, cellCol) {
         return true;
     }
 
-    GameProcess(){
+    async GameProcess(){
+
+        const delay = ms => new Promise(res => setTimeout(res, ms));
+
+        this.CheckGameOver();
         while(!this.gameOver){ 
             this.currentFigure = this.figureQueue.pop();
             this.currentFigurePositionX = 0;
             this.currentFigurePositionY = 4;
-            this.DrawField();
 
             do{
-                setTimeout(function () {
-                    this.currentFigurePositionX += 1;
-                    this.DrawField();
-                }, 3000);
+                await delay(1000);
+
+                this.currentFigurePositionX += 1;
+                this.DrawField();
             }
             while(!this.CheckIsFall());
 
@@ -92,7 +141,10 @@ export class GameBoard{
         }
     }
 
-    GameOver() {
-        this.gameOver = true;
+    CheckGameOver() {
+        if(this.field[0][4] == 1){
+
+            this.gameOver = true;
+        }
     }
 }

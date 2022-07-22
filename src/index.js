@@ -7,7 +7,7 @@ const canvas = document.getElementById('game');
 const context = canvas.getContext('2d');
 
 const fabric = new FigureFabric();
-const board = new GameBoard(fabric);
+const board = new GameBoard(fabric, canvas, context);
 
 board.GameProcess();
 
@@ -17,33 +17,22 @@ document.addEventListener('keydown', function(e) {
     return;
     
   // ^
-  if (e === 38) {
+  if (e.key === 'ArrowUp') {
     board.RotateFigure();
   }
 
   // <
-  if (e === 37) {
+  if (e.key === 'ArrowLeft') {
     board.CheckFigureMove(-1);
   }
 
   // >
-  if (e === 39) {
+  if (e.key === 'ArrowRight') {
     board.CheckFigureMove(1);
   }
 
   // down
-  if (e === 40) {
+  if (e.key === 'ArrowDown') {
     board.MakeFigureAsField();
   }
 });
-
-/*
-function myComponent(){
-  const divElement = document.createElement('div');
-  const h2 = document.createElement('h2');
-  h2.innerText = 'My first webpack setup';
-  divElement.appendChild(h2);
-  return divElement;
-}
-document.body.appendChild(myComponent());
-*/
