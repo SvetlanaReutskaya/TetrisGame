@@ -29,10 +29,14 @@ export class GameBoard{
     }
 
     CheckFigureMove(move){
+        let check = true;
         let newY = this.currentFigurePositionY + move;
 
-        if(newY >= 0 && newY < this.field[0].length){
-            let check = true;
+        if(newY < -1 || newY + this.currentFigure[0].length > this.field[0].length)
+            return false;
+
+        //check obstacles
+        if(newY >= 0 && newY + this.currentFigure[0].length - 1 < this.field[0].length){
             for(let rowId = this.currentFigurePositionX; rowId < this.currentFigurePositionX + this.currentFigure.length; rowId++)
             {
                 for(let colId = newY; colId < newY + this.currentFigure[0].length; colId++)
@@ -42,9 +46,17 @@ export class GameBoard{
                     }
                 }
             }
-            if(check){
-                this.currentFigurePositionY = newY;
+        } else {
+            for(let i = 0; i < this.currentFigure.length; i++){
+                if(move > 0 && this.currentFigure[i][this.currentFigure[0].length - move] == 1)
+                    check = false;
+                if(move < 0 && this.currentFigure[i][-1 - move] == 1)
+                    check = false;
             }
+        }
+
+        if(check){
+            this.currentFigurePositionY = newY;
         }
     }
 
@@ -69,7 +81,7 @@ export class GameBoard{
 
         for(let i = figureNextX; i < figureNextX + this.currentFigure.length; i++){
             for(let j = figureNextY; j< figureNextY + this.currentFigure[0].length; j++){
-                if(i < this.field.length){
+                if(i < this.field.length && j >= 0 && j < this.field[0].length){
                     if(this.field[i][j] == 1 && this.currentFigure[i-figureNextX][j-figureNextY] == 1){
                         return true;
                     }
@@ -85,8 +97,10 @@ export class GameBoard{
             {
                 for(let colId = this.currentFigurePositionY; colId < this.currentFigurePositionY + this.currentFigure[0].length; colId++)
                 {
-                    if(this.currentFigure[rowId-this.currentFigurePositionX][colId-this.currentFigurePositionY] == 1)
-                        this.field[rowId][colId] = this.currentFigure[rowId-this.currentFigurePositionX][colId-this.currentFigurePositionY];
+                    if(colId >= 0 && colId < this.field[0].length){
+                        if(this.currentFigure[rowId-this.currentFigurePositionX][colId-this.currentFigurePositionY] == 1)
+                            this.field[rowId][colId] = this.currentFigure[rowId-this.currentFigurePositionX][colId-this.currentFigurePositionY];
+                    }
                 }
             }
             this.currentFigure = null;
@@ -155,20 +169,20 @@ export class GameBoard{
 
     async GameProcess(){
         
-        this.CheckGameOver();
         while(!this.gameOver){ 
+            this.CheckGameOver();
+
             this.currentFigure = this.figureQueue.pop();
             this.currentFigurePositionX = 0;
             this.currentFigurePositionY = 4;
 
-            do{
-                await this.delay(500);
+            this.DrawField();
+            while(!this.CheckIsFall()){
+                await this.delay(400);
 
                 this.currentFigurePositionX += 1;
                 this.DrawField();
             }
-            while(!this.CheckIsFall());
-
             this.MakeFigureAsField();
             this.DrawField();
 
@@ -183,18 +197,8 @@ export class GameBoard{
             if(this.field[0][j] == 1)
                 this.gameOver = true;
         }
-        if(this.field[0][4] == 1){
-            this.gameOver = true;
-
-            context.fillStyle = 'black';
-            context.globalAlpha = 0.5;
-            context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
-            context.globalAlpha = 1;
-            context.fillStyle = 'white';
-            context.font = '50px monospace';
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
-            context.fillText('GAME OVER! YOURE SCORE: ' + this.score, canvas.width / 2, canvas.height / 2);
+        if(this.gameOver){
+            alert('GAME OVER! YOURE SCORE: ' + this.score);
         }
     }
 }

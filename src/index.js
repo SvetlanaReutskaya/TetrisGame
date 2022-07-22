@@ -30,9 +30,4 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'ArrowRight') {
     board.CheckFigureMove(1);
   }
-
-  // down
-  if (e.key === 'ArrowDown') {
-    board.MakeFigureAsField();
-  }
 });
