@@ -116,7 +116,17 @@ eval("\n\n/* istanbul ignore next  */\nfunction styleTagTransform(css, styleElem
   \**********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _style_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./style.css */ \"./src/style.css\");\n\n\nalert(\"AAA\");\n\nfunction myComponent(){\n  const divElement = document.createELement('div');\n  const h2 = document.createELement('h2');\n  h2.innerText = 'My first webpack setup';\n  divElement.appendChild(h2);\n  return divElement;\n}\ndocument.body.appendChild(myComponent());\n\n//# sourceURL=webpack://tetrisgame/./src/index.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _style_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./style.css */ \"./src/style.css\");\n\nFigureFabric = (__webpack_require__(/*! ./scripts/FigureFabric.js */ \"./src/scripts/FigureFabric.js\")[\"default\"]);\n\n\nconst fabric = new FigureFabric();\nfabric.Test();\n\nfunction myComponent(){\n  const divElement = document.createElement('div');\n  const h2 = document.createElement('h2');\n  h2.innerText = 'My first webpack setup';\n  divElement.appendChild(h2);\n  return divElement;\n}\ndocument.body.appendChild(myComponent());\n\n//# sourceURL=webpack://tetrisgame/./src/index.js?");
+
+/***/ }),
+
+/***/ "./src/scripts/FigureFabric.js":
+/*!*************************************!*\
+  !*** ./src/scripts/FigureFabric.js ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (__WEBPACK_DEFAULT_EXPORT__)\n/* harmony export */ });\nclass FigureFabric{\n    constructor() {\n\n      }\n    \n      Test() {\n        alert(\"AAA\");\n      }\n} \n\n/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FigureFabric);\n\n//# sourceURL=webpack://tetrisgame/./src/scripts/FigureFabric.js?");
 
 /***/ })
 
